@@ -214,13 +214,15 @@ type
     fWPRESTAPI: TWPRESTAPI;
     fRoute: RawUTF8;
     fFilters: string;
+    fJSONStr : RawUtf8;
   public
     function EngineUpdate(TableModelIndex: integer; ID: TID; const SentData: RawUTF8): boolean; override;
     function ExecuteList(const Tables: array of TSQLRecordClass; const SQL: RawUTF8): TSQLTableJSON; override;
+    function EngineAdd(TableModelIndex: integer; const SentData: RawUTF8): TID; override;
     property WPRESTAPI: TWPRESTAPI read fWPRESTAPI write fWPRESTAPI;
     property route: RawUTF8 read fRoute write fRoute;
     property Filters: string read fFilters write fFilters;
-
+    property JSONStr: RawUTF8 read fJSONStr write fJSONStr;
   end;
 
   TSQLWooClient = class(TSQLHttpClientWinHTTP)
@@ -228,12 +230,15 @@ type
     fWooRESTAPI: TWPRESTAPI;
     fRoute: RawUTF8;
     fFilters: string;
+    fJSONStr : RawUtf8;
   public
+    function EngineAdd(TableModelIndex: integer; const SentData: RawUTF8): TID;override;
     function EngineUpdate(TableModelIndex: integer; ID: TID; const SentData: RawUTF8): boolean; override;
     function ExecuteList(const Tables: array of TSQLRecordClass; const SQL: RawUTF8): TSQLTableJSON; override;
     property WooRESTAPI: TWPRESTAPI read fWooRESTAPI write fWooRESTAPI;
     property route: RawUTF8 read fRoute write fRoute;
     property Filters: string read fFilters write fFilters;
+    property JSONStr: RawUTF8 read fJSONStr write fJSONStr;
 
   end;
 
@@ -1147,6 +1152,58 @@ begin
 {$ENDREGION}
 {$REGION 'TSQLWPClient'}
 
+  function TSQLWPClient.EngineAdd(TableModelIndex: integer;
+    const SentData: RawUTF8): TID;
+  var P: PUTF8Char;
+      url, Head: RawUTF8;
+    Resp, lSentdata: RawUTF8;
+    lData, lSent, lParam, lParameters: IJSONObject;
+    i: integer;
+  begin
+    Result := -1;
+    lData := JSON(UTF8ToString(SentData));
+
+    head := WPRESTAPI.getWPHeader(TWPRESTAPI1_0_3LEGS(WPRESTAPI).getWPOauthFlowHeader(False));
+    lParameters := WPRESTAPI.getRestAPIParameters;
+    for i := 0 to lData.count - 1 do
+      lParameters[lData.Names[i]] := UrlEncode(getJSONValueAsVariant(lData, i));
+
+    if TWPRESTAPI1_0_3LEGS(WPRESTAPI).fillRequestURLParameters(WPRESTAPI.getBaseURL(False), route , lParameters.AsJSON, 'POST', 'API')
+    then
+    begin
+      try
+        URL := WPRESTAPI.RestAPI + '/' + route ;
+
+        lSentdata := '';
+        lSent := JSON;
+
+        for i := 0 to WPRESTAPI.JSONParameters.count - 1 do
+        begin
+          lParam := WPRESTAPI.JSONParameters.objects[i];
+          if lData.Has[lParam.Names[0]] then
+            lSent[lParam.Names[0]] := lData[lParam.Names[0]]
+          else
+            lSentdata := lSentdata + getDelimiter(',', i) + getJSONKey(lParam, 0) + '=' + getJSONValue(lParam, 0);
+        end;
+        head := head + #13#10 + 'Authorization: OAuth ' + lSentdata;
+
+        lSentdata := TWPRESTAPI1_0_3LEGS(WPRESTAPI).getWPData(lData);
+
+        result := 0;
+  //      url := Model.URI[Model.Tables[TableModelIndex]];
+        if URI(url,'POST', @Resp,@Head,@lSentData).Lo<>HTML_CREATED then
+          exit; // response must be '201 Created'
+      finally
+        JSONStr := Resp;
+      end;
+      lData := JSON(JSONStr);
+      if lData.has['ID'] then
+        result := lData.integers['ID'];
+
+    end;
+  end;
+
+
   function TSQLWPClient.EngineUpdate(TableModelIndex: integer; ID: TID; const SentData: RawUTF8): boolean;
   var
     URL, header, Resp, lSentdata: RawUTF8;
@@ -1164,24 +1221,29 @@ begin
     if TWPRESTAPI1_0_3LEGS(WPRESTAPI).fillRequestURLParameters(WPRESTAPI.getBaseURL(False), route + '/' + Int64ToUtf8(ID), lParameters.AsJSON, 'POST', 'API')
     then
     begin
-      URL := WPRESTAPI.RestAPI + '/' + route + '/' + Int64ToUtf8(ID);
+      try
 
-      lSentdata := '';
-      lSent := JSON;
+        URL := WPRESTAPI.RestAPI + '/' + route + '/' + Int64ToUtf8(ID);
 
-      for i := 0 to WPRESTAPI.JSONParameters.count - 1 do
-      begin
-        lParam := WPRESTAPI.JSONParameters.objects[i];
-        if lData.Has[lParam.Names[0]] then
-          lSent[lParam.Names[0]] := lData[lParam.Names[0]]
-        else
-          lSentdata := lSentdata + getDelimiter(',', i) + getJSONKey(lParam, 0) + '=' + getJSONValue(lParam, 0);
+        lSentdata := '';
+        lSent := JSON;
+
+        for i := 0 to WPRESTAPI.JSONParameters.count - 1 do
+        begin
+          lParam := WPRESTAPI.JSONParameters.objects[i];
+          if lData.Has[lParam.Names[0]] then
+            lSent[lParam.Names[0]] := lData[lParam.Names[0]]
+          else
+            lSentdata := lSentdata + getDelimiter(',', i) + getJSONKey(lParam, 0) + '=' + getJSONValue(lParam, 0);
+        end;
+        header := header + #13#10 + 'Authorization: OAuth ' + lSentdata;
+
+        lSentdata := TWPRESTAPI1_0_3LEGS(WPRESTAPI).getWPData(lData);
+
+        Result := URI(URL, 'POST', @Resp, @header, @lSentdata).Lo = HTML_SUCCESS;
+      finally
+        JsonStr := Resp;
       end;
-      header := header + #13#10 + 'Authorization: OAuth ' + lSentdata;
-
-      lSentdata := TWPRESTAPI1_0_3LEGS(WPRESTAPI).getWPData(lData);
-
-      Result := URI(URL, 'POST', @Resp, @header, @lSentdata).Lo = HTML_SUCCESS;
       // to add check of error messages
     end;
   end;
@@ -1200,29 +1262,34 @@ begin
 
       if TWPRESTAPI1_0_3LEGS(WPRESTAPI).fillRequestURLParameters(WPRESTAPI.getBaseURL(False), route, lParameters.AsJSON, 'GET', 'API') then
       begin
-        lFilters := JSON(Filters);
-        URL := WPRESTAPI.RestAPI + '/' + route;
-        if lFilters.count > 0 then
-          URL := URL + '?' + TWPRESTAPI1_0_3LEGS(WPRESTAPI).getQueryString(lFilters, True, True);
+        try
+          lFilters := JSON(Filters);
+          URL := WPRESTAPI.RestAPI + '/' + route;
+          if lFilters.count > 0 then
+            URL := URL + '?' + TWPRESTAPI1_0_3LEGS(WPRESTAPI).getQueryString(lFilters, True, True);
 
-        lHeader := 'Authorization: OAuth ';
-        for i := 0 to WPRESTAPI.JSONParameters.count - 1 do
-        begin
-          lParam := WPRESTAPI.JSONParameters.objects[i];
-          lHeader := lHeader + getDelimiter(',', i) + getJSONKey(lParam, 0) + '=' + getJSONValue(lParam, 0);
+          lHeader := 'Authorization: OAuth ';
+          for i := 0 to WPRESTAPI.JSONParameters.count - 1 do
+          begin
+            lParam := WPRESTAPI.JSONParameters.objects[i];
+            lHeader := lHeader + getDelimiter(',', i) + getJSONKey(lParam, 0) + '=' + getJSONValue(lParam, 0);
+          end;
+
+          with URI(URL, 'GET', @Resp, @lHeader) do
+            if Lo = HTML_SUCCESS then
+            begin // GET with SQL sent
+              if high(Tables) = 0 then
+                Result := TSQLTableJSON.CreateFromTables([Tables[0]], SQL, Resp)
+              else
+                Result := TSQLTableJSON.CreateFromTables(Tables, SQL, Resp);
+              JsonStr := urldecode(Resp);
+              Result.InternalState := Hi;
+            end
+            else // get data
+              Result := nil;
+        finally
+          JSONStr:=Resp;
         end;
-
-        with URI(URL, 'GET', @Resp, @lHeader) do
-          if Lo = HTML_SUCCESS then
-          begin // GET with SQL sent
-            if high(Tables) = 0 then
-              Result := TSQLTableJSON.CreateFromTables([Tables[0]], SQL, Resp)
-            else
-              Result := TSQLTableJSON.CreateFromTables(Tables, SQL, Resp);
-            Result.InternalState := Hi;
-          end
-          else // get data
-            Result := nil;
 
       end;
     end;
@@ -1231,6 +1298,43 @@ begin
 
 {$ENDREGION}
 {$REGION 'TSQLWooClient'}
+  function TSQLWooClient.EngineAdd(TableModelIndex: integer; const SentData: RawUTF8): TID;
+  var P: PUTF8Char;
+    URL, head, Resp, lAPIVersion, lSentdata: RawUTF8;
+    lData: IJSONObject;
+    lRoute: string;
+  begin
+    Result := -1;
+    lData := JSON(UTF8ToString(SentData));
+    lAPIVersion := '';
+    if WooRESTAPI.RESTAPIVersion <> '' then
+      lAPIVersion := WooRESTAPI.RESTAPIVersion + '/';
+
+    if TWOOCOMMERCE(WooRESTAPI).fillRequestURLParameters(WooRESTAPI.getBaseURL(False), lAPIVersion + route ,
+      WooRESTAPI.getRestAPIParameters.AsJSON, 'POST', 'API') then
+    begin
+      try
+        URL := WooRESTAPI.RestAPI + '/' + lAPIVersion + route  + UrlEncode(WooRESTAPI.parameters);
+        lData := JSON;
+        lRoute := UTF8ToString(route);
+        if EndsText('s', lRoute) then
+          lRoute := copy(lRoute, 1, length(lRoute) - 1);
+        lData[lRoute] := JSON(UTF8ToString(SentData));
+        lSentdata := StringToUTF8(lData.AsJSON);
+
+        result := 0;
+  //      url := Model.URI[Model.Tables[TableModelIndex]];
+        if URI(url,'POST', @Resp,@Head,@lSentData).Lo<>HTML_CREATED then
+          exit; // response must be '201 Created'
+      finally
+        JSONStr := Resp;
+      end;
+      lData := JSON(JSONStr);
+      if lData.has[lRoute] then
+        if lData.objects[lRoute].has['ID'] then
+           result := lData.objects[lRoute].integers['ID'];
+    end;
+  end;
 
   function TSQLWooClient.EngineUpdate(TableModelIndex: integer; ID: TID; const SentData: RawUTF8): boolean;
   var
@@ -1247,14 +1351,18 @@ begin
     if TWOOCOMMERCE(WooRESTAPI).fillRequestURLParameters(WooRESTAPI.getBaseURL(False), lAPIVersion + route + '/' + Int64ToUtf8(ID),
       WooRESTAPI.getRestAPIParameters.AsJSON, 'POST', 'API') then
     begin
-      URL := WooRESTAPI.RestAPI + '/' + lAPIVersion + route + '/' + Int64ToUtf8(ID) + UrlEncode(WooRESTAPI.parameters);
-      lData := JSON;
-      lRoute := UTF8ToString(route);
-      if EndsText('s', lRoute) then
-        lRoute := copy(lRoute, 1, length(lRoute) - 1);
-      lData[lRoute] := JSON(UTF8ToString(SentData));
-      lSentdata := StringToUTF8(lData.AsJSON);
-      Result := URI(URL, 'POST', @Resp, @header, @lSentdata).Lo = HTML_SUCCESS;
+      try
+        URL := WooRESTAPI.RestAPI + '/' + lAPIVersion + route + '/' + Int64ToUtf8(ID) + UrlEncode(WooRESTAPI.parameters);
+        lData := JSON;
+        lRoute := UTF8ToString(route);
+        if EndsText('s', lRoute) then
+          lRoute := copy(lRoute, 1, length(lRoute) - 1);
+        lData[lRoute] := JSON(UTF8ToString(SentData));
+        lSentdata := StringToUTF8(lData.AsJSON);
+        Result := URI(URL, 'POST', @Resp, @header, @lSentdata).Lo = HTML_SUCCESS;
+      finally
+        JSONStr := Resp;
+      end;
     end;
   end;
 
@@ -1276,23 +1384,27 @@ begin
 
       if TWOOCOMMERCE(WooRESTAPI).fillRequestURLParameters(WooRESTAPI.getBaseURL(False), lAPIVersion + route, lParameters.AsJSON, 'GET', 'API') then
       begin
-        URL := WooRESTAPI.RestAPI + '/' + lAPIVersion + route + UrlEncode(WooRESTAPI.parameters);
+        try
+          URL := WooRESTAPI.RestAPI + '/' + lAPIVersion + route + UrlEncode(WooRESTAPI.parameters);
 
-        lFilters := JSON(Filters);
-        if lFilters.count > 0 then
-          URL := URL + '&' + TWOOCOMMERCE(WooRESTAPI).getQueryString(lFilters, True, True);
+          lFilters := JSON(Filters);
+          if lFilters.count > 0 then
+            URL := URL + '&' + TWOOCOMMERCE(WooRESTAPI).getQueryString(lFilters, True, True);
 
-        with URI(URL, 'GET', @Resp, @header) do
-          if Lo = HTML_SUCCESS then
-          begin // GET with SQL sent
-            if high(Tables) = 0 then
-              Result := TSQLTableJSON.CreateFromTables([Tables[0]], SQL, Resp)
-            else
-              Result := TSQLTableJSON.CreateFromTables(Tables, SQL, Resp);
-            Result.InternalState := Hi;
-          end
-          else // get data
-            Result := nil;
+          with URI(URL, 'GET', @Resp, @header) do
+            if Lo = HTML_SUCCESS then
+            begin // GET with SQL sent
+              if high(Tables) = 0 then
+                Result := TSQLTableJSON.CreateFromTables([Tables[0]], SQL, Resp)
+              else
+                Result := TSQLTableJSON.CreateFromTables(Tables, SQL, Resp);
+              Result.InternalState := Hi;
+            end
+            else // get data
+              Result := nil;
+        finally
+          JSONStr := Resp;
+        end;
       end;
     end;
 

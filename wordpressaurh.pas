@@ -46,6 +46,12 @@ type
     ComboBoxWoo: TComboBox;
     ButtonWooAddFilter: TButton;
     ButtonWooClearFilter: TButton;
+    ButtonCreateUser: TButton;
+    Memo1: TMemo;
+    ButtonWooCreateCustomer: TButton;
+    Label11: TLabel;
+    Panel7: TPanel;
+    MemoError: TMemo;
     procedure FormDestroy(Sender: TObject);
     procedure ButtonWPUsersClick(Sender: TObject);
     procedure ButtonWooCustomersClick(Sender: TObject);
@@ -56,6 +62,8 @@ type
     procedure ButtonWooClearFilterClick(Sender: TObject);
     procedure ButtonWooAddFilterClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure ButtonCreateUserClick(Sender: TObject);
+    procedure ButtonWooCreateCustomerClick(Sender: TObject);
   private
     { Private declarations }
      fGrid: TSQLTableToGrid;
@@ -68,6 +76,8 @@ type
      fWPFilter , fWooFilter : string;
 
      procedure fillGrid(pTable: TSQLTable);
+     function  CheckError(pResponseStr:string): boolean;
+     function getFiltersStr(pFilter: string):string;
 
   public
     { Public declarations }
@@ -79,7 +89,7 @@ var
 implementation
 
 {$R *.dfm}
- uses   chimera.JSON;
+ uses   SynCommons,chimera.JSON;
 
  procedure TForm1.fillGrid(pTable: TSQLTable);
  var lTable :TSQLTable;
@@ -128,12 +138,110 @@ begin
         fWPClient.Update(fWPUser);
       end;
     end ;
+    CheckError(fWPClient.JSONStr);
+
     fillGrid(fWPUser.FillContext.Table);
 
   end
   else
     showmessage('WP users aren''t read')
 
+
+end;
+
+
+function  TForm1.CheckError(pResponseStr:string): boolean;
+var
+    lJSON   : IJSONObject;
+    lJSONA   : IJSONArray;
+    P :  PUTF8Char;
+begin
+
+  Result := true;
+  MemoError.Lines.Clear;
+  if pResponseStr = ''  then exit;
+  p := Pointer(pResponseStr);
+  lJSON := JSON;
+  if P^='[' then
+  begin
+    lJSONA := JSON('{"A":'+  pResponseStr + '}').arrays['A'];
+    if lJSONA.Count = 1 then
+      lJSON := lJSONA.Objects[0];
+  end
+  else if P^='{' then
+    lJSON := JSON( pResponseStr);
+
+  if lJSON.Count = 0 then
+  begin
+    memoError.Lines.text :=  pResponseStr;
+    exit;  //expects JSON
+  end;
+
+  Result := lJSON.Has['errors'] or (lJSON.Has['code'] and lJSON.Has['message']);
+  if Result then
+    memoError.Lines.text :=  FormatJSON(lJSON.asJSON);
+
+end;
+
+function TForm1.getFiltersStr(pFilter: string):string;
+var lFilters,lPFilter : IJSONobject;
+    i : integer;
+begin
+    lFilters := JSON;
+    lPFilter := JSON(pFilter);
+    for i := 0 to lpFilter.Count - 1 do
+      fWP.AddFilter(lFilters,lpFilter.Names[i],lpFilter.strings[lpFilter.Names[i]]);
+    result := lFilters.AsJSON;
+end;
+
+
+procedure TForm1.ButtonCreateUserClick(Sender: TObject);
+var
+    lJSON   : IJSONObject;
+begin
+  try
+    if assigned(fWPUSer) then
+      freeAndNil(fWPUser);
+
+    fWPUser := TSQLRESTAPIUser.create;
+    fWPUser.username := EditWPUsername.text;
+    lJSON := JSON(memo1.lines.text);
+    if lJSON.Has['username'] then
+      fWPUser.username := lJSON.strings['username'];
+    if lJSON.Has['name'] then
+      fWPUser.name := lJSON.strings['name'];
+    if lJSON.Has['first_name'] then
+      fWPUser.first_name := lJSON.strings['first_name'];
+    if lJSON.Has['nickname'] then
+      fWPUser.nickname := lJSON.strings['nickname'];
+    if lJSON.Has['slug'] then
+      fWPUser.slug := lJSON.strings['slug'];
+    if lJSON.Has['avatar'] then
+      fWPUser.avatar := lJSON.strings['avatar'];
+    if lJSON.Has['description'] then
+      fWPUser.description := lJSON.strings['description'];
+    if lJSON.Has['email'] then
+      fWPUser.email := lJSON.strings['email'];
+    if lJSON.Has['password'] then
+      fWPUser.password := lJSON.strings['password'];
+    if not assigned(fWPClient) then
+    begin
+      fWP := TWPRESTAPI1_0_3LEGS.create(EditWPRestAPI.text);
+      fWP.Connect;
+      fWPClient := TSQLWPClient(fWP.getWAPIClient('users',getFiltersStr(fWPFilter)));
+    end;
+    fWPClient.Add(fWPUser, true);
+
+    checkError( fWPClient.JSONStr);
+    FreeAndNil(fWPUser);
+
+    fWPUser := TSQLRESTAPIUser.CreateAndFillPrepare(fWPClient,'',[]);
+
+
+    if assigned(fWPUser) and assigned(fWPUser.FillContext) then
+        fillGrid(fWPUser.FillContext.Table);
+  finally
+  end;
 
 end;
 
@@ -166,6 +274,7 @@ begin
         fWooClient.Update(fWooCustomer);
       end;
     end;
+    CheckError(fWooClient.JSONStr);
     fillGrid(fWooCustomer.FillContext.Table);
   end
   else
@@ -178,6 +287,8 @@ procedure TForm1.ButtonWooAddFilterClick(Sender: TObject);
 var lFilters : IJSONObject;
 begin
   lFilters := JSON(fWooFilter);
+  if ComboBoxWoo.itemindex = -1 then
+   ComboBoxWoo.itemindex := 0;
   lFilters[ComboBoxWoo.Items[ComboBoxWoo.itemindex]] := EditWooFilterValue.Text;
   fWooFilter :=  lFilters.AsJSON;
   LabelWooFilter.Caption := fWooFilter;
@@ -190,9 +301,53 @@ begin
 
 end;
 
+procedure TForm1.ButtonWooCreateCustomerClick(Sender: TObject);
+var lWoocustomer : TSQLWooCustomer;
+    lJSON   : IJSONObject;
+begin
+  try
+    lWoocustomer := TSQLWooCustomer.create;
+    lWoocustomer.username := EditWPUsername.text;
+    lJSON := JSON(memo1.lines.text);
+    if lJSON.Has['username'] then
+      lWoocustomer.username := lJSON.strings['username'];
+    if lJSON.Has['email'] then
+      lWoocustomer.email := lJSON.strings['email'];
+
+    if lJSON.Has['last_name'] then
+      lWoocustomer.last_name := lJSON.strings['last_name'];
+    if lJSON.Has['first_name'] then
+      lWoocustomer.first_name := lJSON.strings['first_name'];
+    if lJSON.Has['avatar_url'] then
+      lWoocustomer.avatar_url := lJSON.strings['avatar_url'];
+    if lJSON.Has['password'] then
+      lWoocustomer.password := lJSON.strings['password'];
+    if not assigned(fWooClient) then
+    begin
+      fWoo := TWOOCommerce.create(EditWooRestApi.text);
+      fWoo.Connect;
+      fWooClient := TSQLWooClient(fWoo.getWAPIClient('customers',getFiltersStr(fWooFilter)));
+    end;
+    fWooClient.Add(lWoocustomer, true);
+    if not checkError( fWooClient.JSONStr) then
+      fWooCustomer := TSQLWooCustomer.CreateAndFillPrepare(fWooClient,'',[]);
+
+  //  fWooCustomer := TSQLWooCustomer.CreateAndFillPrepare(fWooClient,'',[]);
+
+    if assigned(fWooCustomer) and assigned(fWooCustomer.FillContext) then
+      fillGrid(fWooCustomer.FillContext.Table);
+  finally
+    freeAndNil(lWoocustomer);
+  end;
+
+
+end;
+
 procedure TForm1.ButtonWooCustomersClick(Sender: TObject);
-var lFilters,lWooFilters : IJSONObject;
+var
     i : integer;
+    lJSONA : IJSONArray;
+    lVal : string;
 begin
   try
     if assigned(fWooCustomer) then freeAndNil(fWooCustomer);
@@ -202,24 +357,29 @@ begin
     fWoo.Connect;
   // see for available filters  at https://woothemes.github.io/woocommerce-rest-api-docs/#parameters ; https://woothemes.github.io/woocommerce-rest-api-docs/#pagination
 
-    lFilters := JSON;
-    lWooFilters := JSON(fWooFilter);
-    for i := 0 to lWooFilters.Count - 1 do
-      fWoo.AddFilter(lFilters,lWooFilters.Names[i],lWooFilters.strings[lWooFilters.Names[i]]);
-
-    fWooClient := TSQLWooClient(fWoo.getWAPIClient('customers',lFilters.asJSON));
+    fWooClient := TSQLWooClient(fWoo.getWAPIClient('customers',getFiltersStr(fWooFilter)));
 
     fWooCustomer := TSQLWooCustomer.CreateAndFillPrepare(fWooClient,'',[]);
+    CheckError(fWooClient.JSONStr);
 
     if assigned(fWooCustomer) and assigned(fWooCustomer.FillContext) then
       fillGrid(fWooCustomer.FillContext.Table);
+    lJSONA := JSON(fWooClient.JsonStr).arrays['customers'];
+    memo1.lines.clear;
+    if lJSONA.count > 0  then
+    begin
+      lVal :=lJSONA.objects[0].asJSON;
+      memo1.Lines.text :=  FormatJSON(lVal);
+    end;
   finally
   end;
 
 end;
 
 procedure TForm1.ButtonWPUsersClick(Sender: TObject);
-var lFilters,lWPFilters : IJSONObject;
+var lJSON : IJSONObject;
+    lJSONa:IJSONArray;
+    lVAl : string;
     i : integer;
 begin
   try
@@ -237,17 +397,23 @@ begin
 //    search - Keyword to search for. (string)
 // GET /users?filter[s]=xxx&filter[orderby]=username
 
-    lFilters := JSON;
-    lWPFilters := JSON(fWPFilter);
-    for i := 0 to lWPFilters.Count - 1 do
-      fWP.AddFilter(lFilters,lWPFilters.Names[i],lWPFilters.strings[lWPFilters.Names[i]]);
 
+    fWPClient := TSQLWPClient(fWP.getWAPIClient('users', getFiltersStr(fWPFilter)));
 
-    fWPClient := TSQLWPClient(fWP.getWAPIClient('users', lFilters.asJSON));
+    CheckError(fWPClient.JSONStr);
+
     // lFilters.asJSON = '{"search":"*eva*","orderby":"username}'
     fWPUser := TSQLRESTAPIUser.CreateAndFillPrepare(fWPClient,'',[]);
     if assigned(fWPUser) and assigned(fWPUser.FillContext) then
       fillGrid(fWPUser.FillContext.Table);
+    lJSONA := JSON('{"A":'+fWPClient.JsonStr+'}').Arrays['A'];
+    memo1.lines.clear;
+    if lJSONA.count > 0  then
+    begin
+      lVal :=lJSONA.objects[0].asJSON;
+      memo1.Lines.text :=  FormatJSON(lVal);
+    end;
+
   finally
   end;
 

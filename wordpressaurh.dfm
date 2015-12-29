@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Form1'
-  ClientHeight = 400
+  ClientHeight = 675
   ClientWidth = 1077
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -13,6 +13,9 @@ object Form1: TForm1
   OldCreateOrder = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  DesignSize = (
+    1077
+    675)
   PixelsPerInch = 96
   TextHeight = 13
   object Label3: TLabel
@@ -41,17 +44,32 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label11: TLabel
+    Left = 8
+    Top = 406
+    Width = 168
+    Height = 13
+    Caption = 'New user/customer (as JSON)'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object DrawGrid: TDrawGrid
     Left = 560
     Top = 0
     Width = 517
-    Height = 400
+    Height = 675
     Align = alRight
+    Anchors = [akLeft, akTop, akRight, akBottom]
     ColCount = 1
     FixedCols = 0
     RowCount = 1
     FixedRows = 0
     TabOrder = 0
+    ExplicitHeight = 400
   end
   object Panel1: TPanel
     Left = 4
@@ -132,6 +150,15 @@ object Form1: TForm1
       Caption = 'Change user description'
       TabOrder = 2
       OnClick = ButtonChangeWPDescriptionClick
+    end
+    object ButtonCreateUser: TButton
+      Left = 404
+      Top = 9
+      Width = 140
+      Height = 25
+      Caption = 'Create user '
+      TabOrder = 3
+      OnClick = ButtonCreateUserClick
     end
   end
   object Panel2: TPanel
@@ -332,6 +359,15 @@ object Form1: TForm1
       TabOrder = 2
       OnClick = ButtonChangeWooLastnameClick
     end
+    object ButtonWooCreateCustomer: TButton
+      Left = 405
+      Top = 7
+      Width = 140
+      Height = 25
+      Caption = 'Create customer'
+      TabOrder = 3
+      OnClick = ButtonWooCreateCustomerClick
+    end
   end
   object Panel5: TPanel
     Left = 4
@@ -405,16 +441,16 @@ object Form1: TForm1
     object ButtonWPAddFilter: TButton
       Left = 405
       Top = 6
-      Width = 64
+      Width = 69
       Height = 25
       Caption = 'Add Filter'
       TabOrder = 2
       OnClick = ButtonWPAddFilterClick
     end
     object ButtonWPClearFilter: TButton
-      Left = 474
+      Left = 475
       Top = 6
-      Width = 64
+      Width = 69
       Height = 25
       Caption = 'clear Filter'
       TabOrder = 3
@@ -491,20 +527,63 @@ object Form1: TForm1
     object ButtonWooAddFilter: TButton
       Left = 405
       Top = 6
-      Width = 64
+      Width = 69
       Height = 25
       Caption = 'Add Filter'
       TabOrder = 2
       OnClick = ButtonWooAddFilterClick
     end
     object ButtonWooClearFilter: TButton
-      Left = 474
+      Left = 476
       Top = 6
-      Width = 64
+      Width = 69
       Height = 25
       Caption = 'clear Filter'
       TabOrder = 3
       OnClick = ButtonWooClearFilterClick
+    end
+  end
+  object Memo1: TMemo
+    Left = 4
+    Top = 425
+    Width = 550
+    Height = 144
+    Lines.Strings = (
+      '')
+    ScrollBars = ssVertical
+    TabOrder = 7
+  end
+  object Panel7: TPanel
+    Left = 4
+    Top = 575
+    Width = 550
+    Height = 92
+    Alignment = taLeftJustify
+    Anchors = [akLeft, akTop, akBottom]
+    Caption = 'Errors'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clMaroon
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 8
+    VerticalAlignment = taAlignTop
+    DesignSize = (
+      550
+      92)
+    object MemoError: TMemo
+      Left = 38
+      Top = 0
+      Width = 500
+      Height = 88
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      Lines.Strings = (
+        '')
+      ScrollBars = ssVertical
+      TabOrder = 0
+      ExplicitWidth = 496
+      ExplicitHeight = 44
     end
   end
 end

@@ -54,6 +54,8 @@ type
     fdescription: RawUTF8;
     fregistered: TModTime;
     femail: RawUTF8;
+    fpassword: RawUTF8;
+
 //  ...
   published
     property username: RawUTF8 read fusername write fusername;
@@ -66,6 +68,7 @@ type
     property description: RawUTF8 read fdescription write fdescription;
     property registered: TModTime read fregistered write fregistered;
     property email: RawUTF8 read femail write femail;
+    property password: RawUTF8 read fpassword write fpassword;
   end;
 
 
