@@ -1,7 +1,7 @@
 unit WPRESTAPI;
-// the example of RU ( C can be easy complemented)  objects of Wordpress(resp. Woocommerce) on the base
+// the example of CRU records of Wordpress(resp. Woocommerce) on the base
 // WP REST API + Oauth1 authentication (resp Woocommerce API)
-// this example shows how to read/update records of type Wordpress users  or read/update records of type Woocommerce's Customers
+// this example shows how to create/read/update records of type Wordpress users  or create/read/update records of type Woocommerce's Customers
 // see WPRESTAPIModels unit - user ->TSQLRESTAPIUser ; customer->TSQLWooCustomer
 // The other Wordpress records  (of type post,  comment, media , pages.. ) and the other Woocommerce records ( type of products, orders,..) can be done on the same principle
 // some routines from mormot could be chosen perhaps better and efficiently.
@@ -54,12 +54,12 @@ uses
 // small remark to chimera.JSON
 // it is alternative JSON library  (very lightweight, fast and simple) - see http://arcana.sivv.com/chimera
 // it is possible to use Mormot JSON library by the  easy  rewriting of JSON Objects / JSON Arrays
-// Chimera                                                       |         Mormot
-// var lJSON : IJSONObject;                                          | var lJSON : variant;
-// lJSONArray: IJSONArray;                                       |     lJSONArray : variant;
+// Chimera                                                        |         Mormot
+// var lJSON : IJSONObject;                                       | var lJSON : variant;
+// lJSONArray: IJSONArray;                                        |     lJSONArray : variant;
 // lJSONAsString : string;
 // lJSONCopy: IJSONObject;
-// begin                                                             | begin
+// begin                                                          | begin
 // lJSON := JSON;                                                 |   TDocVariant.New(lJSON);
 // lJSON['id'] :=10;                                              |   lJson.id = 10;
 // lJSON['doc'] := JSON;                                          |   ...
