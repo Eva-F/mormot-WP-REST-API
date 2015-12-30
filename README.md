@@ -27,8 +27,10 @@
     * WP REST API plugin  https://wordpress.org/plugins/json-rest-api/  (I tested my library with this plugin)
       or WordPress REST API (Version 2) plugin https://wordpress.org/plugins/rest-api/
     * OAuth 1 plugin https://github.com/WP-API/OAuth1 
+    * Fill WPRESTAPI.json by own values (WP Server, consumer keys,...)
 * for WooCommerce consuming
     * Woocommerce plugin and enabling Woocommerce API in Woocommerce setting
+    * Fill WOORESTAPI.json by own values (WP Server, consumer keys,...)
     
 ####Documentation:
 * Woocommmerce REST API             https://woothemes.github.io/woocommerce-rest-api-docs/
