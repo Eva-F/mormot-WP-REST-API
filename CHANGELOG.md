@@ -9,20 +9,23 @@
 
 	 Oauth1 version 0.2.1 uses [consumer secret key]&[request secret key]
 
-	* Oauth1 version 0.1 has bug in file *lib/class-wp-json-authentication.php* in the function: 
+	* Oauth1 version 0.1 has bug in file *lib/class-wp-json-authentication.php* in the function:
+ 
 		_**public function get_consumer( $key )**_ 
+
 		instead of 
+
 		    $consumers = $query->query( array(
 			'post_type' => 'json_consumer',
 			'post_status' => 'any',
 			'meta_query' => array(
 				array(
-					'**meta_key**' => 'key',
-					'**meta_value**' => $key,
+					'meta_key' => 'key',
+					'meta_value' => $key,
 				),
 				array(
-					'**meta_key**' => 'type',
-					'**meta_value**' => $this->type,
+					'meta_key' => 'type',
+					'meta_value' => $this->type,
 				),
 			),
 		) );
@@ -34,12 +37,12 @@
 			'post_status' => 'any',
 			'meta_query' => array(
 				array(
-					'**key**' => 'key',
-					'**value**' => $key,
+					'key' => 'key',
+					'value' => $key,
 				),
 				array(
-					'**key**' => 'type',
-					'**value**' => $this->type,
+					'key' => 'type',
+					'value' => $this->type,
 				),
 			),
 		) );
