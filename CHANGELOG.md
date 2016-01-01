@@ -3,13 +3,13 @@
 ##2016-01-02
 * [bug] insufficiently freeing WPRestAPI.Parameters (a memory leak) 
 * [enh] added support of new Oauth1 plugin version (0.2.1)
-	* Oauth1 plugin version 0.2.1 and previous Oauth1 plugin version 0.1 use different hash key in last three flow of authentification:
+	* Oauth1 plugin version 0.2.1 and previous Oauth1 plugin version 0.1 uses different hash keyin the last third flow of authentification:
 
 	 Oauth1 version 0.1 uses only [consumer secret key]
 
 	 Oauth1 version 0.2.1 uses [consumer secret key]&[request secret key]
 
-	* Oauth1 version 0.1 has bug in file *lib/class-wp-json-authentication.php* in the function:
+	* Oauth1 plugin version 0.1 has bug in the file *lib/class-wp-json-authentication.php* in the function:
  
 		_**public function get_consumer( $key )**_ 
 
@@ -47,7 +47,7 @@
 			),
 		) );
 	
-	* due the change of functionality of Oauth1 plugin check plz your version and write Oauth1 plugin version into **WPRESTAPI.json** (or **WOORESTAPI.json**)
+	* due the change of functionality of Oauth1 plugin you should check your version and write down  Oauth1 plugin version into **WPRESTAPI.json** (or **WOORESTAPI.json**)
 
 	 	
 
