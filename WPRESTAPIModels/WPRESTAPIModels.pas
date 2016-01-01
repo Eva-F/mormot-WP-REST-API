@@ -25,6 +25,7 @@ type
     fWPPassword:RawUTF8;
     fExpirated :tDateTime;
     fRESTAPIVersion :RawUTF8;
+    fOAUthPluginVersion :RawUTF8;
   published
     property Server: RawUTF8 read fServer write fServer;
     property Port: RawUTF8 read fPort write fPort;
@@ -40,6 +41,7 @@ type
     property WPPassword: RawUTF8 read fWPPassword write fWPPassword;
     property Expirated: tDateTime read fExpirated write fExpirated;
     property RESTAPIVersion: RawUTF8 read fRESTAPIVersion write fRESTAPIVersion;
+    property OAUthPluginVersion: RawUTF8 read fOAUthPluginVersion write fOAUthPluginVersion;
   end;
 
   TSQLRESTAPIUser = class(TSQLRecord)
