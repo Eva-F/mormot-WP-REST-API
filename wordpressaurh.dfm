@@ -69,7 +69,6 @@ object Form1: TForm1
     RowCount = 1
     FixedRows = 0
     TabOrder = 0
-    ExplicitHeight = 400
   end
   object Panel1: TPanel
     Left = 4
@@ -582,8 +581,6 @@ object Form1: TForm1
         '')
       ScrollBars = ssVertical
       TabOrder = 0
-      ExplicitWidth = 496
-      ExplicitHeight = 44
     end
   end
 end

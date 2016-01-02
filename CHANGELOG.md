@@ -1,6 +1,6 @@
 ## Changelog
 
-##2016-01-02
+##2016-01-01
 * [bug] insufficiently freeing WPRestAPI.Parameters (a memory leak) 
 * [enh] added support of new Oauth1 plugin version (0.2.1)
 	* Oauth1 plugin version 0.2.1 and previous Oauth1 plugin version 0.1 uses different hash keyin the last third flow of authentification:
@@ -49,7 +49,8 @@
 	
 	* due the change of functionality of Oauth1 plugin you should check your version and write down  Oauth1 plugin version into **WPRESTAPI.json** (or **WOORESTAPI.json**)
 
-	 	
+##2016-01-02
+	* [change] the creation of aNameValuePairs array by using mormot subroutines	 	
 
 		 
 

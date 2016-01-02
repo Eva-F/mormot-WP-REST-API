@@ -138,13 +138,12 @@ begin
         fWPClient.Update(fWPUser);
       end;
     end ;
-    CheckError(fWPClient.JSONStr);
-
-    fillGrid(fWPUser.FillContext.Table);
+    if not CheckError(fWPClient.JSONStr) then
+      fillGrid(fWPUser.FillContext.Table);
 
   end
   else
-    showmessage('WP users aren''t read')
+    MemoError.Lines.text := 'WP users aren''t read';
 
 
 end;
@@ -232,8 +231,9 @@ begin
     end;
     fWPClient.Add(fWPUser, true);
 
-    checkError( fWPClient.JSONStr);
     FreeAndNil(fWPUser);
+
+    if  checkError( fWPClient.JSONStr) then exit;
 
     fWPUser := TSQLRESTAPIUser.CreateAndFillPrepare(fWPClient,'',[]);
 
@@ -274,11 +274,11 @@ begin
         fWooClient.Update(fWooCustomer);
       end;
     end;
-    CheckError(fWooClient.JSONStr);
-    fillGrid(fWooCustomer.FillContext.Table);
+    if not CheckError(fWooClient.JSONStr) then
+      fillGrid(fWooCustomer.FillContext.Table);
   end
   else
-    showmessage('WooCustomers aren''t read')
+    MemoError.Lines.text := 'WooCustomers aren''t read';
 
 end;
 
@@ -360,16 +360,20 @@ begin
     fWooClient := TSQLWooClient(fWoo.getWAPIClient('customers',getFiltersStr(fWooFilter)));
 
     fWooCustomer := TSQLWooCustomer.CreateAndFillPrepare(fWooClient,'',[]);
-    CheckError(fWooClient.JSONStr);
-
-    if assigned(fWooCustomer) and assigned(fWooCustomer.FillContext) then
-      fillGrid(fWooCustomer.FillContext.Table);
-    lJSONA := JSON(fWooClient.JsonStr).arrays['customers'];
-    memo1.lines.clear;
-    if lJSONA.count > 0  then
+    if not CheckError(fWooClient.JSONStr) then
     begin
-      lVal :=lJSONA.objects[0].asJSON;
-      memo1.Lines.text :=  FormatJSON(lVal);
+      if assigned(fWooCustomer) and assigned(fWooCustomer.FillContext) then
+        fillGrid(fWooCustomer.FillContext.Table);
+      memo1.lines.clear;
+      if JSON(fWooClient.JsonStr).has['customers'] then
+      begin
+        lJSONA := JSON(fWooClient.JsonStr).arrays['customers'];
+        if lJSONA.count > 0  then
+        begin
+          lVal :=lJSONA.objects[0].asJSON;
+          memo1.Lines.text :=  FormatJSON(lVal);
+        end;
+      end;
     end;
   finally
   end;
@@ -400,18 +404,19 @@ begin
 
     fWPClient := TSQLWPClient(fWP.getWAPIClient('users', getFiltersStr(fWPFilter)));
 
-    CheckError(fWPClient.JSONStr);
-
-    // lFilters.asJSON = '{"search":"*eva*","orderby":"username}'
-    fWPUser := TSQLRESTAPIUser.CreateAndFillPrepare(fWPClient,'',[]);
-    if assigned(fWPUser) and assigned(fWPUser.FillContext) then
-      fillGrid(fWPUser.FillContext.Table);
-    lJSONA := JSON('{"A":'+fWPClient.JsonStr+'}').Arrays['A'];
     memo1.lines.clear;
-    if lJSONA.count > 0  then
+    if not CheckError(fWPClient.JSONStr) then
     begin
-      lVal :=lJSONA.objects[0].asJSON;
-      memo1.Lines.text :=  FormatJSON(lVal);
+      // lFilters.asJSON = '{"search":"*eva*","orderby":"username}'
+      fWPUser := TSQLRESTAPIUser.CreateAndFillPrepare(fWPClient,'',[]);
+      if assigned(fWPUser) and assigned(fWPUser.FillContext) then
+        fillGrid(fWPUser.FillContext.Table);
+      lJSONA := JSON('{"A":'+fWPClient.JsonStr+'}').Arrays['A'];
+      if lJSONA.count > 0  then
+      begin
+        lVal :=lJSONA.objects[0].asJSON;
+        memo1.Lines.text :=  FormatJSON(lVal);
+      end;
     end;
 
   finally
