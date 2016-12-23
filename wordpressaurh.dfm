@@ -139,7 +139,7 @@ object Form1: TForm1
       Font.Style = []
       ParentFont = False
       TabOrder = 1
-      Text = 'blablablaa'
+      Text = '111111blablablaa'
     end
     object ButtonChangeWPDescription: TButton
       Left = 405
@@ -559,7 +559,7 @@ object Form1: TForm1
     Height = 92
     Alignment = taLeftJustify
     Anchors = [akLeft, akTop, akBottom]
-    Caption = 'Errors'
+    Caption = 'Messages'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clMaroon
     Font.Height = -11
@@ -572,9 +572,9 @@ object Form1: TForm1
       550
       92)
     object MemoError: TMemo
-      Left = 38
+      Left = 64
       Top = 0
-      Width = 500
+      Width = 474
       Height = 88
       Anchors = [akLeft, akTop, akRight, akBottom]
       Lines.Strings = (

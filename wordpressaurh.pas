@@ -156,7 +156,7 @@ var
     P :  PUTF8Char;
 begin
 
-  Result := true;
+  Result := not(pResponseStr = '');
   MemoError.Lines.Clear;
   if pResponseStr = ''  then exit;
   p := Pointer(pResponseStr);
@@ -405,7 +405,7 @@ begin
     fWPClient := TSQLWPClient(fWP.getWAPIClient('users', getFiltersStr(fWPFilter)));
 
     memo1.lines.clear;
-    if not CheckError(fWPClient.JSONStr) then
+    if not CheckError(fWPClient.JSONStr)  then
     begin
       // lFilters.asJSON = '{"search":"*eva*","orderby":"username}'
       fWPUser := TSQLRESTAPIUser.CreateAndFillPrepare(fWPClient,'',[]);
