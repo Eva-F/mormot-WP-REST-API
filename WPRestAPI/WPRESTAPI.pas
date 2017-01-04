@@ -763,7 +763,7 @@ begin
         JSONParameters.Add(JSON(lJSON.AsJSON)); // copy of jsonobject
     end;
     lJSON := JSON;
-//    lJSON['XDEBUG_SESSION_START'] := 'WPtest';
+    lJSON['XDEBUG_SESSION_START'] := 'WPtest';
     JSONParameters.Add(JSON(lJSON.asJSON));        // copy of jsonobject
 
     addParameter(JSONParameters);
@@ -1279,7 +1279,7 @@ begin
           lFilters := JSON(Filters);
           URL := WPRESTAPI.RestAPI + '/' + route ;
           if lFilters.count > 0 then
-            URL := URL + '?' + TWPRESTAPI1_0_3LEGS(WPRESTAPI).getQueryString(lFilters, True, True);  //+'&XDEBUG_SESSION_START=WPtest';
+            URL := URL + '?' + TWPRESTAPI1_0_3LEGS(WPRESTAPI).getQueryString(lFilters, True, True)+'&XDEBUG_SESSION_START=WPtest';
 
           lHeader := 'Authorization: OAuth ';
           for i := 0 to WPRESTAPI.JSONParameters.count - 1 do
@@ -1366,7 +1366,7 @@ begin
       WooRESTAPI.getRestAPIParameters.AsJSON, 'POST', 'API') then
     begin
       try
-        URL := WooRESTAPI.RestAPI + '/' + lAPIVersion + route + '/' + Int64ToUtf8(ID) + UrlEncode(WooRESTAPI.parameters); // +  '&XDEBUG_SESSION_START=WPtest';
+        URL := WooRESTAPI.RestAPI + '/' + lAPIVersion + route + '/' + Int64ToUtf8(ID) + UrlEncode(WooRESTAPI.parameters) +  '&XDEBUG_SESSION_START=WPtest';
         lData := JSON;
         lRoute := UTF8ToString(route);
         if EndsText('s', lRoute) then
